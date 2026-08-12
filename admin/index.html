@@ -1,1 +1,8 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Admin - VS Computer Education</title></head><body><div id="app"></div><script>window.location.href='login.html'</script></body></html>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Admin - VS Computer Education</title></head><body><div id="app"></div><script>
+  const token = localStorage.getItem("vsce_admin_token");
+  if (!token) {
+    window.location.href = "login.html";
+  } else {
+    window.location.href = "dashboard.html";
+  }
+</script></body></html>
