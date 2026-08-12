@@ -1,3 +1,6 @@
+// VS Computer Education - Database Initialization
+// Updated: Admin credentials changed to kajal/kajalsinghrajput5590
+
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -60,20 +63,22 @@ db.exec(`
   );
 `);
 
-// Create or update admin user
-const adminUser = db.prepare('SELECT id FROM users WHERE username = ?').get('kajal');
-if (!adminUser) {
-  const oldAdmin = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
-  if (oldAdmin) {
-    db.prepare('UPDATE users SET username = ?, password = ?, name = ? WHERE id = ?').run(
-      'kajal', bcrypt.hashSync('kajalsinghrajput5590', 10), 'Kajal', oldAdmin.id
-    );
-  } else {
-    db.prepare('INSERT INTO users (name, username, password, role) VALUES (?,?,?,?)').run(
-      'Kajal', 'kajal', bcrypt.hashSync('kajalsinghrajput5590', 10), 'admin'
-    );
-  }
+// Try to update existing admin user first, then create if not exists
+const existingAdmin = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
+if (existingAdmin) {
+  db.prepare('UPDATE users SET username = ?, password = ?, name = ? WHERE id = ?').run(
+    'kajal', bcrypt.hashSync('kajalsinghrajput5590', 10), 'Kajal', existingAdmin.id
+  );
 }
+
+// Create kajal if not already exists
+const kajalExists = db.prepare('SELECT id FROM users WHERE username = ?').get('kajal');
+if (!kajalExists && !existingAdmin) {
+  db.prepare('INSERT INTO users (name, username, password, role) VALUES (?,?,?,?)').run(
+    'Kajal', 'kajal', bcrypt.hashSync('kajalsinghrajput5590', 10), 'admin'
+  );
+}
+
 // Staff user
 const staffExists = db.prepare('SELECT id FROM users WHERE username = ?').get('staff');
 if (!staffExists) {
