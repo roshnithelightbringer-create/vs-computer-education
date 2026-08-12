@@ -16,13 +16,23 @@ app.use('/api/enquiries', require('./routes/enquiries'));
 app.use('/api/demo', require('./routes/demo'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
-// Serve admin static files
-app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
-// Fallback for SPA routing within admin
-app.get('/admin/*', (req, res) {
-  res.sendFile(path.join(__dirname, '..', 'admin', 'index.html'));
+// Force HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+      return res.redirect('https://' + req.headers.host + req.url);
+    }
+    next();
+  });
+}
+
+// SPA fallback - serve index.html for unknown routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`VS Computer Education server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  // Initialize database
+  require('./database');
 });
