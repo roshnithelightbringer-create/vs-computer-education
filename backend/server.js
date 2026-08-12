@@ -16,7 +16,10 @@ app.use('/api/enquiries', require('./routes/enquiries'));
 app.use('/api/demo', require('./routes/demo'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
-app.get('/admin/*', (req, res) => {
+// Serve admin static files
+app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
+// Fallback for SPA routing within admin
+app.get('/admin/*', (req, res) {
   res.sendFile(path.join(__dirname, '..', 'admin', 'index.html'));
 });
 
