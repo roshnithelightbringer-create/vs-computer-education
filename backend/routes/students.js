@@ -1,12 +1,11 @@
 const db = require('../database');
 const router = require('express').Router();
 
-// Register/Login a student (single-step: enter name + phone)
+// Register/Login a student
 router.post('/login', (req, res) => {
   const { name, phone, course } = req.body;
   if (!name || !phone) return res.status(400).json({ error: 'Name and phone required' });
 
-  // Check if student already exists by phone
   const existing = db.prepare('SELECT * FROM students WHERE phone = ?').get(phone);
   let student;
   if (existing) {
@@ -36,9 +35,9 @@ router.put('/:id/status', (req, res) => {
 
 // Record a fee payment (student)
 router.post('/payment', (req, res) => {
-  const { name, phone, course, amount } = req.body;
+  const { name, phone, course, amount, transaction_id } = req.body;
   if (!name || !phone || !amount) return res.status(400).json({ error: 'Name, phone and amount required' });
-  const result = db.prepare('INSERT INTO payments (name, phone, course, amount, status) VALUES (?,?,?,?,?)').run(name, phone, course || null, amount, 'pending');
+  db.prepare('INSERT INTO payments (name, phone, course, amount, transaction_id, status) VALUES (?,?,?,?,?,?)').run(name, phone, course || null, amount, transaction_id || null, 'pending');
   res.json({ id: result.lastInsertRowid, success: true, status: 'pending' });
 });
 
