@@ -15,6 +15,7 @@ app.use('/api/courses', require('./routes/courses'));
 app.use('/api/enquiries', require('./routes/enquiries'));
 app.use('/api/demo', require('./routes/demo'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/students', require('./routes/students'));
 
 // Force HTTPS in production
 if (process.env.NODE_ENV === 'production') {
@@ -33,6 +34,5 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  // Initialize database
   require('./database');
 });
