@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   if (document.getElementById('demosTable')) loadDemos();
   if (document.getElementById('adminCoursesTable')) loadAdminCourses();
+  if (document.getElementById('studentsTable')) loadStudents();
+  if (document.getElementById('paymentsTable')) loadPayments();
 });
 
 async function adminFetch(endpoint, opts) {
@@ -64,17 +66,9 @@ async function adminFetch(endpoint, opts) {
 
 function checkAuth() { if (!isAuthenticated()) { window.location.href = 'login.html'; return false; } return true; }
 function logout() { clearAuth(); window.location.href = 'login.html'; }
-function loadSidebar() {
-  var u = getUser();
-  if (!u) return;
-  var a = document.getElementById('adminAvatar'), n = document.getElementById('adminName'), r = document.getElementById('adminRole');
-  if (a) a.textContent = u.name.charAt(0).toUpperCase();
-  if (n) n.textContent = u.name;
-  if (r) r.textContent = u.role === 'admin' ? 'Administrator' : 'Staff';
-}
 
 async function loadDashboard() {
-  if (!checkAuth()) return; loadSidebar();
+  if (!checkAuth()) return;
   try {
     var d = await adminFetch('/dashboard/overview');
     if (document.getElementById('statEnquiries')) document.getElementById('statEnquiries').textContent = d.enquiries || 0;
@@ -83,11 +77,16 @@ async function loadDashboard() {
     if (document.getElementById('statNewDemos')) document.getElementById('statNewDemos').textContent = d.new_demos || 0;
     if (document.getElementById('statCourses')) document.getElementById('statCourses').textContent = d.courses || 0;
     if (document.getElementById('statJoined')) document.getElementById('statJoined').textContent = d.joined || 0;
+    // Also load students and payments count
+    var students = await adminFetch('/students');
+    if (document.getElementById('statStudents')) document.getElementById('statStudents').textContent = students.students ? students.students.length : 0;
+    var payments = await adminFetch('/students/payments');
+    if (document.getElementById('statPayments')) document.getElementById('statPayments').textContent = payments.payments ? payments.payments.length : 0;
   } catch(e) { console.error(e); }
 }
 
 async function loadEnquiries() {
-  if (!checkAuth()) return; loadSidebar();
+  if (!checkAuth()) return;
   var sf = document.getElementById('enqStatusFilter')?.value || '';
   var sq = document.getElementById('enqSearch')?.value || '';
   try {
@@ -99,14 +98,14 @@ async function loadEnquiries() {
     var t = document.getElementById('enquiriesTable');
     if (!t) return;
     if (!d.enquiries || !d.enquiries.length) { t.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999">No enquiries found</td></tr>'; return; }
-    t.innerHTML = d.enquiries.map(function(e) { return '<tr><td>' + e.name + '</td><td>' + e.phone + '</td><td>' + (e.course||'-') + '</td><td>' + (e.enquiry_type||'general') + '</td><td><select onchange="updateEnquiryStatus(' + e.id + ',this.value)"><option value="new"' + (e.status==='new'?' selected':'') + '>New</option><option value="contacted"' + (e.status==='contacted'?' selected':'') + '>Contacted</option><option value="follow-up"' + (e.status==='follow-up'?' selected':'') + '>Follow-up</option><option value="joined"' + (e.status==='joined'?' selected':'') + '>Joined</option><option value="closed"' + (e.status==='closed'?' selected':'') + '>Closed</option></select></td><td>' + new Date(e.created_at).toLocaleDateString('en-IN') + '</td><td><a href="tel:' + e.phone + '">Call</a></td></tr>'; }).join('');
+    t.innerHTML = d.enquiries.map(function(e) { return '<tr><td>' + e.name + '</td><td>' + e.phone + '</td><td>' + (e.course||'-') + '</td><td>' + (e.enquiry_type||'general') + '</td><td><select onchange="updateEnquiryStatus(' + e.id + ',this.value)"><option value="new"' + (e.status==='new'?' selected':'') + '>New</option><option value="contacted"' + (e.status==='contacted'?' selected':'') + '>Contacted</option><option value="follow-up"' + (e.status==='follow-up'?' selected':'') + '>Follow-up</option><option value="joined"' + (e.status==='joined'?' selected':'') + '>Joined</option><option value="closed"' + (e.status==='closed'?' selected':'') + '>Closed</option></select></td><td>' + new Date(e.created_at).toLocaleDateString('en-IN') + '</td><td><a href="tel:' + e.phone + '">Call</a> <a href="https://wa.me/' + e.phone.replace(/[^0-9]/g,'') + '?text=Hello%20' + encodeURIComponent(e.name) + '%2C%20this%20is%20VS%20Computer%20Education." target="_blank">WhatsApp</a></td></tr>'; }).join('');
   } catch(e) { console.error(e); }
 }
 
 async function updateEnquiryStatus(id, status) { try { await adminFetch('/enquiries/' + id + '/status', { method: 'PUT', body: { status: status } }); } catch(e) { console.error(e); } }
 
 async function loadDemos() {
-  if (!checkAuth()) return; loadSidebar();
+  if (!checkAuth()) return;
   try {
     var d = await adminFetch('/demo');
     var t = document.getElementById('demosTable');
@@ -119,7 +118,7 @@ async function loadDemos() {
 async function updateDemoStatus(id, status) { try { await adminFetch('/demo/' + id + '/status', { method: 'PUT', body: { status: status } }); } catch(e) { console.error(e); } }
 
 async function loadAdminCourses() {
-  if (!checkAuth()) return; loadSidebar();
+  if (!checkAuth()) return;
   try {
     var d = await adminFetch('/courses/admin/all');
     var t = document.getElementById('adminCoursesTable');
@@ -128,6 +127,40 @@ async function loadAdminCourses() {
     t.innerHTML = d.courses.map(function(c) { return '<tr><td>' + c.title + '</td><td>' + (c.category||'-') + '</td><td>' + (c.duration||'-') + '</td><td>' + (c.eligibility||'-') + '</td><td>' + (c.active?'Active':'Inactive') + '</td><td><button onclick="editCourse(' + c.id + ')">Edit</button> <button onclick="deleteCourse(' + c.id + ')">Delete</button></td></tr>'; }).join('');
   } catch(e) { console.error(e); }
 }
+
+// Load students
+async function loadStudents() {
+  if (!checkAuth()) return;
+  try {
+    var d = await adminFetch('/students');
+    var t = document.getElementById('studentsTable');
+    if (!t) return;
+    if (!d.students || !d.students.length) { t.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999">No students registered yet</td></tr>'; return; }
+    t.innerHTML = d.students.map(function(s) {
+      var phone = s.phone.replace(/[^0-9]/g,'');
+      return '<tr><td>' + s.name + '</td><td>' + s.phone + '</td><td>' + (s.course||'-') + '</td><td><select onchange="updateStudentStatus(' + s.id + ',this.value)"><option value="new"' + (s.status==='new'?' selected':'') + '>New</option><option value="contacted"' + (s.status==='contacted'?' selected':'') + '>Contacted</option><option value="joined"' + (s.status==='joined'?' selected':'') + '>Joined</option><option value="inactive"' + (s.status==='inactive'?' selected':'') + '>Inactive</option></select></td><td>' + new Date(s.created_at).toLocaleDateString('en-IN') + '</td><td><a href="tel:' + s.phone + '">Call</a> <a href="https://wa.me/' + phone + '?text=Hello%20' + encodeURIComponent(s.name) + '%2C%20this%20is%20VS%20Computer%20Education." target="_blank">WhatsApp</a></td></tr>';
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function updateStudentStatus(id, status) { try { await adminFetch('/students/' + id + '/status', { method: 'PUT', body: { status: status } }); } catch(e) { console.error(e); } }
+
+// Load payments
+async function loadPayments() {
+  if (!checkAuth()) return;
+  try {
+    var d = await adminFetch('/students/payments');
+    var t = document.getElementById('paymentsTable');
+    if (!t) return;
+    if (!d.payments || !d.payments.length) { t.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999">No payments submitted yet</td></tr>'; return; }
+    t.innerHTML = d.payments.map(function(p) {
+      var phone = p.phone.replace(/[^0-9]/g,'');
+      return '<tr><td>' + p.name + '</td><td>' + p.phone + '</td><td>' + (p.course||'-') + '</td><td>' + p.amount + '</td><td>' + (p.payment_date||'-') + '</td><td><select onchange="updatePaymentStatus(' + p.id + ',this.value)"><option value="pending"' + (p.status==='pending'?' selected':'') + '>Pending</option><option value="confirmed"' + (p.status==='confirmed'?' selected':'') + '>Confirmed</option></select></td><td><a href="tel:' + p.phone + '">Call</a> <a href="https://wa.me/' + phone + '?text=Hello%20' + encodeURIComponent(p.name) + '%2C%20your%20payment%20of%20' + encodeURIComponent(p.amount) + '%20has%20been%20received.%20Thank%20you!" target="_blank">WhatsApp</a></td></tr>';
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function updatePaymentStatus(id, status) { try { await adminFetch('/students/payments/' + id + '/status', { method: 'PUT', body: { status: status } }); } catch(e) { console.error(e); } }
 
 var editingCourseId = null;
 function showAddCourseForm() { editingCourseId = null; document.getElementById('courseFormTitle').textContent = 'Add New Course'; document.getElementById('courseForm').reset(); document.getElementById('courseModal').style.display = 'flex'; }
