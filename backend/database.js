@@ -1,5 +1,4 @@
 // VS Computer Education - Database Initialization
-// Updated: Admin credentials changed to kajal/kajalsinghrajput5590
 
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
@@ -61,19 +60,30 @@ db.exec(`
     status TEXT CHECK(status IN ('new','contacted','completed','cancelled')) DEFAULT 'new',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  CREATE TABLE IF NOT EXISTS students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    course TEXT,
+    status TEXT CHECK(status IN ('new','contacted','joined','inactive')) DEFAULT 'new',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    course TEXT,
+    amount TEXT NOT NULL,
+    payment_date TEXT DEFAULT (date('now')),
+    status TEXT CHECK(status IN ('pending','confirmed')) DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
-// Try to update existing admin user first, then create if not exists
-const existingAdmin = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
-if (existingAdmin) {
-  db.prepare('UPDATE users SET username = ?, password = ?, name = ? WHERE id = ?').run(
-    'kajal', bcrypt.hashSync('kajalsinghrajput5590', 10), 'Kajal', existingAdmin.id
-  );
-}
-
-// Create kajal if not already exists
-const kajalExists = db.prepare('SELECT id FROM users WHERE username = ?').get('kajal');
-if (!kajalExists && !existingAdmin) {
+// Admin user: kajal
+const existingAdmin = db.prepare('SELECT id FROM users WHERE username = ?').get('kajal');
+if (!existingAdmin) {
   db.prepare('INSERT INTO users (name, username, password, role) VALUES (?,?,?,?)').run(
     'Kajal', 'kajal', bcrypt.hashSync('kajalsinghrajput5590', 10), 'admin'
   );
