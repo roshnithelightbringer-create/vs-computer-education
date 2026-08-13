@@ -77,7 +77,6 @@ async function loadDashboard() {
     if (document.getElementById('statNewDemos')) document.getElementById('statNewDemos').textContent = d.new_demos || 0;
     if (document.getElementById('statCourses')) document.getElementById('statCourses').textContent = d.courses || 0;
     if (document.getElementById('statJoined')) document.getElementById('statJoined').textContent = d.joined || 0;
-    // Also load students and payments count
     var students = await adminFetch('/students');
     if (document.getElementById('statStudents')) document.getElementById('statStudents').textContent = students.students ? students.students.length : 0;
     var payments = await adminFetch('/students/payments');
@@ -128,7 +127,6 @@ async function loadAdminCourses() {
   } catch(e) { console.error(e); }
 }
 
-// Load students
 async function loadStudents() {
   if (!checkAuth()) return;
   try {
@@ -145,17 +143,16 @@ async function loadStudents() {
 
 async function updateStudentStatus(id, status) { try { await adminFetch('/students/' + id + '/status', { method: 'PUT', body: { status: status } }); } catch(e) { console.error(e); } }
 
-// Load payments
 async function loadPayments() {
   if (!checkAuth()) return;
   try {
     var d = await adminFetch('/students/payments');
     var t = document.getElementById('paymentsTable');
     if (!t) return;
-    if (!d.payments || !d.payments.length) { t.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999">No payments submitted yet</td></tr>'; return; }
+    if (!d.payments || !d.payments.length) { t.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999">No payments submitted yet</td></tr>'; return; }
     t.innerHTML = d.payments.map(function(p) {
       var phone = p.phone.replace(/[^0-9]/g,'');
-      return '<tr><td>' + p.name + '</td><td>' + p.phone + '</td><td>' + (p.course||'-') + '</td><td>' + p.amount + '</td><td>' + (p.payment_date||'-') + '</td><td><select onchange="updatePaymentStatus(' + p.id + ',this.value)"><option value="pending"' + (p.status==='pending'?' selected':'') + '>Pending</option><option value="confirmed"' + (p.status==='confirmed'?' selected':'') + '>Confirmed</option></select></td><td><a href="tel:' + p.phone + '">Call</a> <a href="https://wa.me/' + phone + '?text=Hello%20' + encodeURIComponent(p.name) + '%2C%20your%20payment%20of%20' + encodeURIComponent(p.amount) + '%20has%20been%20received.%20Thank%20you!" target="_blank">WhatsApp</a></td></tr>';
+      return '<tr><td>' + p.name + '</td><td>' + p.phone + '</td><td>' + (p.course||'-') + '</td><td>' + p.amount + '</td><td>' + (p.transaction_id||'-') + '</td><td>' + (p.payment_date||'-') + '</td><td><select onchange="updatePaymentStatus(' + p.id + ',this.value)"><option value="pending"' + (p.status==='pending'?' selected':'') + '>Pending</option><option value="confirmed"' + (p.status==='confirmed'?' selected':'') + '>Confirmed</option></select></td><td><a href="tel:' + p.phone + '">Call</a> <a href="https://wa.me/' + phone + '?text=Hello%20' + encodeURIComponent(p.name) + '%2C%20your%20payment%20of%20' + encodeURIComponent(p.amount) + '%20has%20been%20received.%20Thank%20you!" target="_blank">WhatsApp</a></td></tr>';
     }).join('');
   } catch(e) { console.error(e); }
 }
