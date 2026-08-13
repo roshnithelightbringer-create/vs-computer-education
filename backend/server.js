@@ -4,35 +4,39 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS
 app.use(cors());
+
+// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, '..')));
+// Serve static files
+app.use(express.static(path.join(__dirname)));
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/courses', require('./routes/courses'));
-app.use('/api/enquiries', require('./routes/enquiries'));
-app.use('/api/demo', require('./routes/demo'));
-app.use('/api/dashboard', require('./routes/dashboard'));
-app.use('/api/students', require('./routes/students'));
+// Serve admin files
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
-// Force HTTPS in production
-if (process.env.NODE_ENV === 'production') {
-  app.use((req, res, next) => {
-    if (req.headers['x-forwarded-proto'] !== 'https') {
-      return res.redirect('https://' + req.headers.host + req.url);
-    }
-    next();
-  });
-}
+// API routes
+const authRoutes = require('./backend/routes/auth');
+const courseRoutes = require('./backend/routes/courses');
+const dashboardRoutes = require('./backend/routes/dashboard');
+const demoRoutes = require('./backend/routes/demo');
+const enquiryRoutes = require('./backend/routes/enquiries');
+const studentRoutes = require('./backend/routes/students');
 
-// SPA fallback - serve index.html for unknown routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'index.html'));
+app.use('/api/auth', authRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/demo', demoRoutes);
+app.use('/api/enquiries', enquiryRoutes);
+app.use('/api/students', studentRoutes);
+
+// Serve index.html for root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  require('./database');
 });
