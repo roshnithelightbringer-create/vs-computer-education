@@ -28,6 +28,7 @@ db.exec(`
     short_description TEXT,
     description TEXT,
     syllabus TEXT,
+    skills_list TEXT,
     certificate_info TEXT,
     placement_info TEXT,
     duration TEXT,
@@ -86,15 +87,13 @@ db.exec(`
   );
 `);
 
-// Migrate existing DB: add columns if missing
+// Add columns if missing
 const courseCols = db.prepare("PRAGMA table_info(courses)").all();
 const courseColNames = courseCols.map(c => c.name);
-const newCols = ['who_should_choose', 'what_you_learn', 'skills_covered', 'benefits'];
+const newCols = ['who_should_choose', 'what_you_learn', 'skills_covered', 'benefits', 'skills_list'];
 for (const col of newCols) {
   if (!courseColNames.includes(col)) {
-    try {
-      db.exec(`ALTER TABLE courses ADD COLUMN ${col} TEXT`);
-    } catch(e) { /* column may already exist */ }
+    try { db.exec(`ALTER TABLE courses ADD COLUMN ${col} TEXT`); } catch(e) {}
   }
 }
 
@@ -103,15 +102,13 @@ if (!payCols.some(c => c.name === 'transaction_id')) {
   db.exec('ALTER TABLE payments ADD COLUMN transaction_id TEXT');
 }
 
-// Admin user: kajal
+// Seed users
 const existingAdmin = db.prepare('SELECT id FROM users WHERE username = ?').get('kajal');
 if (!existingAdmin) {
   db.prepare('INSERT INTO users (name, username, password, role) VALUES (?,?,?,?)').run(
     'Kajal', 'kajal', bcrypt.hashSync('kajalsinghrajput5590', 10), 'admin'
   );
 }
-
-// Staff user
 const staffExists = db.prepare('SELECT id FROM users WHERE username = ?').get('staff');
 if (!staffExists) {
   db.prepare('INSERT INTO users (name, username, password, role) VALUES (?,?,?,?)').run(
@@ -119,28 +116,160 @@ if (!staffExists) {
   );
 }
 
-// Seed courses
+// Seed courses from brochure data
 const existingCourses = db.prepare('SELECT COUNT(*) as count FROM courses').get();
 if (existingCourses.count === 0) {
-  const insert = db.prepare(`INSERT INTO courses (title, slug, category, short_description, description, duration, eligibility, who_should_choose, what_you_learn, skills_covered, benefits, featured, active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1)`);
-  
+  const insert = db.prepare(`INSERT INTO courses (title, slug, category, short_description, description, duration, eligibility, who_should_choose, what_you_learn, skills_covered, benefits, skills_list, featured, active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1)`);
+
   const courseData = [
-    ['DCA', 'dca', 'Diploma', 'Diploma in Computer Applications', 'The Diploma in Computer Applications (DCA) is a foundational program designed for students and professionals who want to build a strong base in computer applications. This course covers essential computer skills, office automation, programming fundamentals, and practical applications. Perfect for beginners looking to start their IT career or enhance their employability with computer proficiency.', '6 Months', '10th Pass or Equivalent', 'Students who have completed 10th or 12th and want to build a career in computers. Working professionals looking to add computer skills to their resume. Anyone starting from scratch with computers.', 'Computer fundamentals, operating systems, MS Office suite (Word, Excel, PowerPoint), internet and email, basic programming concepts, and practical computer applications used in offices and businesses.', 'MS Word, MS Excel, MS PowerPoint, Internet & Email, Basic Programming, File Management, Typing Skills, Computer Hardware Basics', 'Government-recognized diploma, strong foundation for higher computer courses, improved job prospects, practical hands-on training, certificate upon completion, job placement support.', 1],
-    ['ADCA', 'adca', 'Diploma', 'Advanced Diploma in Computer Applications', 'The Advanced Diploma in Computer Applications (ADCA) is a comprehensive program that builds upon basic computer knowledge and dives deeper into advanced applications, programming, and IT concepts. This course is ideal for those who want to gain an edge in the competitive job market with advanced computer skills.', '1 Year', '10+2 or Equivalent', 'Students who have completed 12th and want a comprehensive computer education. Those looking for better job opportunities in the IT sector. Anyone who wants to master computer applications beyond the basics.', 'Advanced MS Office, database management, accounting with Tally Prime, web design fundamentals, programming concepts, financial accounting, and practical IT skills used in modern workplaces.', 'Advanced Excel, Tally Prime, Database Management, Web Design, Programming Basics, Financial Accounting, Digital Marketing Fundamentals, Communication Skills', 'Advanced diploma qualification, higher earning potential, eligibility for specialized IT roles, practical industry-oriented training, comprehensive skill development, job placement assistance.', 1],
-    ['ADCT', 'adct', 'Diploma', 'Advanced Diploma in Computer Training', 'The Advanced Diploma in Computer Training (ADCT) is a specialized program designed for those who want to become computer trainers or instructors. This course combines advanced computer knowledge with teaching methodologies, preparing you to train others effectively.', '1 Year', '10+2 or Equivalent', 'Those who want to become computer teachers or trainers. Graduates looking for a career in computer education. Professionals who want to train others in their organization.', 'Advanced computer applications, teaching methodologies, curriculum design, student assessment techniques, presentation skills, and practical training delivery methods.', 'Advanced MS Office Suite, Teaching Methods, Curriculum Planning, Presentation Skills, Communication, Classroom Management, Assessment Techniques, Computer Hardware', 'Qualification to teach computer courses, practical teaching experience, curriculum development skills, recognized diploma, career in education sector, job placement in training institutes.', 1],
-    ['PGDCA', 'pgdca', 'Diploma', 'Post Graduate Diploma in Computer Applications', 'The Post Graduate Diploma in Computer Applications (PGDCA) is an advanced program for graduates who want to specialize in computer applications. This course covers advanced programming, database management, software development, and IT project management, preparing you for leadership roles in the IT industry.', '1 Year', 'Graduation in any discipline', 'Graduates who want to enter the IT industry. Working professionals seeking career advancement. Those who want to pursue MCA or higher studies in computers.', 'Advanced programming, database design and management, software development lifecycle, web technologies, networking concepts, IT project management, and emerging technologies.', 'Programming Languages, Database Management, Web Development, Networking, Software Engineering, Project Management, System Analysis, Cloud Computing Basics', 'Post graduate diploma qualification, eligibility for IT management roles, pathway to MCA, higher salary potential, industry-relevant skills, comprehensive job placement support.', 1],
-    ['Tally Prime', 'tally-prime', 'Accounting', 'Complete Accounting & GST Software Course', 'Master Tally Prime, India\'s most popular accounting and GST software. This practical course covers everything from basic accounting entries to advanced GST filing, payroll management, and inventory control.', '3 Months', 'Basic computer knowledge', 'Students and professionals who want to learn accounting software. Small business owners who want to manage their own accounts. Job seekers targeting accounts and finance roles.', 'Accounting fundamentals, Tally Prime operations, GST return filing, payroll processing, inventory management, banking transactions, and financial report generation.', 'Tally Prime, GST Filing, Payroll Management, Inventory Control, Banking, Financial Reports, Voucher Entry, Taxation Basics', 'Industry-demanded skill, immediate job opportunities in accounting, practical GST filing experience, hands-on training with live projects, certificate of completion.', 0],
-    ['Photoshop', 'photoshop', 'Design', 'Professional Graphic Design with Photoshop', 'Learn Adobe Photoshop from basics to advanced techniques. This course covers photo editing, digital painting, graphic design, typography, and visual effects used in professional design work.', '3 Months', 'Basic computer knowledge', 'Creative individuals who want to learn graphic design. Photography enthusiasts who want to edit photos professionally. Aspiring designers and social media content creators.', 'Photoshop tools and panels, photo retouching and manipulation, layer management, masking and blending, typography design, color theory, and creating graphics for print and web.', 'Photo Editing, Layer Management, Masking, Typography, Color Theory, Digital Painting, Image Manipulation, Print & Web Graphics', 'Creative career opportunities, freelance income potential, in-demand digital skill, portfolio development, practical project-based learning.', 0],
-    ['Web Development', 'web-development', 'Programming', 'Build Websites from Scratch - HTML, CSS, JS', 'Learn to build modern, responsive websites from scratch. This course covers HTML, CSS, JavaScript, and basic backend concepts. You\'ll create real websites as part of your learning.', '4 Months', 'Basic computer knowledge', 'Anyone who wants to build websites. Students considering a career in web development. Small business owners who want to manage their own website.', 'HTML5 structure and semantics, CSS3 styling and animations, responsive design, JavaScript fundamentals, DOM manipulation, basic backend concepts, and deploying websites live.', 'HTML5, CSS3, JavaScript, Responsive Design, Bootstrap, Basic Backend, Git, Website Deployment', 'High-demand skill, freelance and job opportunities, ability to build your own websites, practical project portfolio, foundation for advanced development.', 0],
-    ['Digital Marketing', 'digital-marketing', 'Marketing', 'Master Online Marketing & Social Media', 'Learn to promote businesses online with digital marketing strategies. This course covers SEO, social media marketing, Google Ads, email marketing, content marketing, and analytics.', '3 Months', 'Basic internet knowledge', 'Business owners who want to market online. Students looking for a career in digital marketing. Professionals who want to add digital marketing to their skillset.', 'Search engine optimization (SEO), social media marketing on Facebook, Instagram, LinkedIn, Google Ads and PPC campaigns, email marketing, content strategy, and performance analytics.', 'SEO, Social Media Marketing, Google Ads, Email Marketing, Content Marketing, Analytics, Facebook/Instagram Ads, Canva', 'Fast-growing career field, work-from-home opportunities, practical campaign experience, certification, skills applicable to any business.', 0],
-    ['Artificial Intelligence', 'ai', 'Programming', 'Learn AI Tools & Prompt Engineering', 'Get started with Artificial Intelligence in a practical, beginner-friendly way. Learn to use AI tools like ChatGPT, create effective prompts, understand machine learning basics, and apply AI to real-world tasks.', '2 Months', 'Basic computer knowledge', 'Anyone curious about AI and its applications. Professionals who want to use AI to improve their work. Students who want to stay ahead with future-ready skills.', 'AI fundamentals, using ChatGPT and AI tools effectively, prompt engineering techniques, AI for content creation, data analysis with AI, understanding machine learning concepts, and ethical AI usage.', 'ChatGPT, Prompt Engineering, AI Tools, Content Generation, Data Analysis with AI, Machine Learning Basics, AI Ethics', 'Future-proof your career, increase productivity with AI tools, understand the technology shaping tomorrow, practical hands-on experience with real AI tools.', 0],
-    ['English Speaking', 'english-speaking', 'Soft Skills', 'Improve Your Spoken English & Communication', 'Build confidence in spoken English through practical conversation practice. This course covers grammar basics, vocabulary building, pronunciation, public speaking, and professional communication.', '3 Months', 'Basic understanding of English', 'Anyone who wants to improve their spoken English. Job seekers preparing for interviews. Professionals who need better English for work. Students who want to communicate confidently.', 'English grammar essentials, vocabulary building techniques, pronunciation and accent improvement, conversation practice, interview preparation, presentation skills, and professional writing.', 'Grammar, Vocabulary, Pronunciation, Conversation, Interview Skills, Presentation Skills, Professional Writing, Public Speaking', 'Better job opportunities, confidence in communication, improved interview performance, career advancement, personal growth, practical speaking practice.', 0]
+    ['DCA', 'dca', 'Diploma', 'Diploma in Computer Applications',
+     'The Diploma in Computer Applications (DCA) is a foundational course designed for students and beginners. Learn essential computer skills including computer fundamentals, MS Office applications, internet operations, and basic computer operations. Perfect for students, job seekers, and anyone wanting to build a strong foundation in computers.',
+     '6 Months', '10th Pass or Equivalent',
+     'Students who have completed 10th or 12th and want to build computer skills. Beginners with little or no computer knowledge. Job seekers who need basic computer proficiency for office work.',
+     'Computer fundamentals including file management, desktop operations, and system settings. MS Word for document creation and formatting. MS Excel for spreadsheets, tables, and basic calculations. MS PowerPoint for presentations. Internet browsing, email, and online communication.',
+     'Computer Fundamentals, MS Word, MS Excel, MS PowerPoint, Internet & Email, Paint, Notepad, WordPad, Typing Skills',
+     'Build a strong foundation in computers. Learn essential office applications used in every workplace. Practical hands-on training. Certificate upon completion. Job placement support.',
+     'Computer Fundamentals|MS Word|MS Excel|MS PowerPoint|Internet & Email|Paint|Notepad|WordPad|Typing Master|Basic Computer Operations', 1],
+
+    ['ADCA', 'adca', 'Diploma', 'Advanced Diploma in Computer Applications',
+     'The Advanced Diploma in Computer Applications (ADCA) is a comprehensive program covering everything from DCA to advanced topics including Tally Prime & GST, Graphic Design, and Database Management. Ideal for students who want complete computer proficiency for better job opportunities.',
+     '1 Year', '10+2 or Equivalent',
+     'Students who have completed 12th and want comprehensive computer education. Those looking for office jobs requiring advanced computer skills. Anyone who wants to master computers including accounting and design.',
+     'All DCA topics plus: Tally Prime & GST (company creation, purchase/sales orders, inventory, GST filing). Graphic Design with Photoshop, Corel Draw, and Page Maker. Database management. Advanced Excel functions and formulas. Internet and web fundamentals.',
+     'All DCA skills plus: Tally Prime & GST, Graphic Design (Photoshop, Corel Draw, Page Maker), Database Management, Advanced Excel, Internet & Web',
+     'Complete computer education in one course. Learn accounting with Tally Prime & GST. Gain graphic design skills. Higher job prospects in offices and businesses. Industry-recognized diploma. Job placement assistance.',
+     'All DCA Skills|Tally Prime & GST|Graphic Design (Photoshop, Corel Draw, Page Maker)|Database Management|Advanced Excel|Internet & Web|Personality Development', 1],
+
+    ['ADCT', 'adct', 'Diploma', 'Advanced Diploma in Computer Technology',
+     'The Advanced Diploma in Computer Technology (ADCT) is a specialized program for those who want in-depth knowledge of computer technology. Covers everything in ADCA plus hardware, networking, troubleshooting, and advanced computer technology concepts.',
+     '1 Year', '10+2 or Equivalent',
+     'Students who want to become computer professionals. Those interested in computer hardware and networking. Aspiring computer trainers and technicians.',
+     'All ADCA topics plus: Computer hardware identification and assembly. Operating system installation and configuration. BIOS/CMOS settings. Networking fundamentals. Troubleshooting PC hardware and software. Antivirus installation and system maintenance.',
+     'All ADCA skills plus: Hardware Identification & Assembly, OS Installation, BIOS/CMOS Settings, Networking Basics, PC Troubleshooting, System Maintenance, Antivirus & Security',
+     'Become a complete computer professional. Learn both software and hardware. Higher earning potential. Qualification to work as computer technician or trainer. Practical hands-on training. Job placement support.',
+     'All ADCA Skills|Hardware Identification & Assembly|OS Installation & Configuration|BIOS & CMOS Settings|Networking Fundamentals|PC Troubleshooting|System Maintenance|Antivirus & Security|Disc Management|Booting Process', 1],
+
+    ['PGDCA', 'pgdca', 'Diploma', 'Post Graduate Diploma in Computer Applications',
+     'The Post Graduate Diploma in Computer Applications (PGDCA) is our most advanced program for graduates. Covers everything in ADCT plus advanced modules including Textile Designing, Embroidery Designing, Programming, and specialized vocational skills for a complete professional skillset.',
+     '2 Years', 'Graduation in any discipline',
+     'Graduates who want to build a complete IT career. Professionals seeking advanced computer skills. Those who want to master multiple domains including design, programming, and vocational skills.',
+     'All ADCT topics plus: Textile Designing & Digital Print. Multi Embroidery Designing. Programming fundamentals. Advanced Graphic Design. Mobile Repairing basics. Photo & Video Mixing/Editing. Personality Development and communication skills.',
+     'All ADCT skills plus: Textile Designing & Digital Print, Multi Embroidery Designing, Programming Basics, Advanced Graphic Design, Mobile Repairing, Photo & Video Editing, Personality Development, Communication Skills',
+     'Most comprehensive computer diploma. Master multiple professional domains. Highest job placement potential. Complete career readiness. Advanced certificate qualification. Premium job placement support.',
+     'All ADCT Skills|Textile Designing & Digital Print|Multi Embroidery Designing|Programming Fundamentals|Advanced Graphic Design|Mobile Repairing|Photo & Video Mixing/Editing|Personality Development|Communication Skills|Mehandi Course', 1],
+
+    ['Computer Fundamentals', 'computer-fundamentals', 'Skill', 'Basic Computer Operations & Skills',
+     'Learn the basics of computers including file management, desktop operations, MS-Paint, Notepad, WordPad, typing, and essential computer operations. Perfect for absolute beginners.',
+     '2 Months', 'No prerequisites',
+     'Absolute beginners. Housewives and senior citizens. Anyone who has never used a computer before.',
+     'Computer basics, file and folder management, time and display settings, taskbar operations, MS-Paint, Notepad, WordPad, Control Panel, Typing Master, calculator, screensaver settings.',
+     'File & Folder Management, MS-Paint, Notepad, WordPad, Control Panel, Typing Master, Desktop Operations',
+     'Start from zero. Build confidence with computers. Learn at your own pace. Practical hands-on training.',
+     'File & Folder Management|Time & Display Settings|Taskbar Operations|MS-Paint|Notepad|WordPad|Control Panel|Typing Master|My Computer|Calculator|Screensaver', 0],
+
+    ['Microsoft Office', 'microsoft-office', 'Skill', 'MS Word, Excel & PowerPoint Training',
+     'Master Microsoft Office applications including MS Word, MS Excel, and MS PowerPoint. Each application is taught separately with practical exercises and real-world projects.',
+     '2 Months per application', 'Basic computer knowledge',
+     'Students, office workers, job seekers. Anyone who needs to use MS Office for work or study.',
+     'MS Word: document creation, formatting, tables, mail merge. MS Excel: spreadsheets, formulas, charts, data management. MS PowerPoint: presentations, slide design, animations, audio slides.',
+     'MS Word, MS Excel, MS PowerPoint',
+     'Industry-standard office skills. Improve efficiency. Certificate for each application. Practical project-based learning.',
+     'MS Word (Paragraph Typing, Letter Formatting, Format Painter, Print Setup, Bookmark, Hyperlink, Header & Footer, Watermark, Picture Insert)|MS Excel (Workbooks, Table Format, Conditional Formatting, Charts, Salary Slips, Functions & Formulas, Marksheets)|MS PowerPoint (Presentations, Slide Formatting, Backgrounds, Slide Design & Layout, Effects, Audio Slides)', 0],
+
+    ['CCC', 'ccc', 'Skill', 'Course on Computer Concepts',
+     'Government-recognized course covering Windows, MS Office, Internet, email, troubleshooting, and installation. Includes MS Outlook and MS Indic for Hindi typing.',
+     '2 Months', 'Basic computer knowledge',
+     'Students preparing for government jobs. Anyone wanting a recognized computer certificate. Beginners wanting structured computer education.',
+     'Windows XP/10, MS Word step by step, MS Outlook, MS Indic (Hindi typing), Internet fundamentals, troubleshooting, installation best practices.',
+     'Windows OS, MS Word, MS Outlook, MS Indic, Internet, Troubleshooting, Installation',
+     'Government-recognized certification. Covers all basic computer concepts. Hindi typing included. Job-ready skills.',
+     'Windows OS|MS Word (Step by Step)|MS Outlook|MS Indic (Hindi Typing)|Internet|Troubleshooting|Installation & Best Practices', 0],
+
+    ['Tally Prime & GST', 'tally-prime', 'Skill', 'Complete Accounting & GST Software',
+     'Learn Tally Prime with complete GST training. Covers company creation, purchase/sales orders, inventory management, GST filing (SGST, CGST, IGST), stock transfer, and interest calculation.',
+     '2 Months', 'Basic computer knowledge',
+     'Students wanting accounting careers. Small business owners. Job seekers targeting accounts and finance roles.',
+     'Tally introduction, company creation (single & multiple), interest calculation, purchase and sales orders, inventory introduction, stock transfer, GST filing (SGST, CGST, IGST).',
+     'Tally Prime, GST Filing (SGST/CGST/IGST), Company Creation, Purchase/Sales Orders, Inventory Management, Stock Transfer',
+     'Industry-demanded accounting skill. Complete GST filing experience. Immediate job opportunities. Practical hands-on training.',
+     'Introduction to Tally|Company Creation (Single & Multiple)|Interest Calculation|Purchase Orders|Sales Orders|Inventory Introduction|Stock Transfer|GST (SGST, CGST, IGST)', 0],
+
+    ['Graphic Design & DTP', 'graphic-design', 'Skill', 'Professional Graphic Design & Desktop Publishing',
+     'Learn professional graphic design with Photoshop, Corel Draw, Illustrator, and Page Maker. Create logos, banners, brochures, and print-ready designs.',
+     '3 Months', 'Basic computer knowledge',
+     'Creative individuals. Aspiring graphic designers. Anyone wanting to learn design software for career or business.',
+     'Adobe Photoshop for photo editing and manipulation. Corel Draw for vector graphics and logos. Page Maker for desktop publishing. Illustrator for illustrations.',
+     'Adobe Photoshop, Corel Draw, Page Maker, Illustrator, Logo Design, Banner Design, Print Design',
+     'Creative career opportunities. Freelance income potential. Build a design portfolio. Practical project-based learning.',
+     'Adobe Photoshop|Corel Draw|Page Maker|Illustrator|Logo Design|Banner & Brochure Design|Print-Ready Design', 0],
+
+    ['Mobile Repairing', 'mobile-repairing', 'Skill', 'Mobile Phone Repair & Service Training',
+     'Learn complete mobile phone repairing including digital PCB knowledge, flashing, online repair techniques, and hardware troubleshooting.',
+     '2 Months', 'Basic electronics knowledge',
+     'Those wanting a career in mobile repair. Entrepreneurs wanting to start a repair shop. Technicians wanting to upgrade skills.',
+     'Digital PCB knowledge, BB5 flashing software, advance online repair knowledge, all IIC indication, re-bold practice, flash file download knowledge, jumper knowledge.',
+     'Digital PCB, Mobile Flashing, Online Repair, Hardware Troubleshooting, Jumper Work',
+     'High-demand vocational skill. Start your own business. Practical hands-on training. Lifetime support.',
+     'Digital PCB Knowledge|BB5 Flashing Software|Advance Online Repair|All IIC Indication|Re-bold Practice|Flash File Download|Jumper Knowledge|Hardware Troubleshooting', 0],
+
+    ['Hardware & Networking', 'hardware-networking', 'Skill', 'Computer Hardware & Network Administration',
+     'Comprehensive training in computer hardware assembly, troubleshooting, networking, and system administration.',
+     '3 Months', 'Basic computer knowledge',
+     'Aspiring computer technicians. IT support professionals. Anyone wanting to understand computer hardware.',
+     'Identification of all computer parts, PC troubleshooting, OS installation, BIOS/CMOS settings, driver installation, assembling & disassembling, disc management, booting process, antivirus installation.',
+     'Hardware Identification, PC Assembly, OS Installation, BIOS/CMOS Settings, Networking, Troubleshooting',
+     'Essential IT skills. High demand in support roles. Practical lab training. Certification upon completion.',
+     'Identification of All Parts|PC Troubleshooting|OS Installation|BIOS & CMOS Settings|Driver Installation|Assembling & Disassembling|Disc Management|Booting Process|Antivirus Installation & Updates', 0],
+
+    ['Photo & Video Editing', 'photo-video-editing', 'Skill', 'Photo & Video Mixing and Editing',
+     'Learn professional photo editing and video mixing with Adobe Premiere and After Effects. Create stunning videos, effects, and visual content.',
+     '3 Months', 'Basic computer knowledge',
+     'Creative individuals. Aspiring video editors. Social media content creators. Photography enthusiasts.',
+     'Adobe Premiere for video editing and mixing. Adobe After Effects for visual effects and motion graphics. Photo editing techniques.',
+     'Adobe Premiere, Adobe After Effects, Video Mixing, Visual Effects, Photo Editing',
+     'Creative career in media. Freelance opportunities. Content creation skills. Practical project work.',
+     'Adobe Premiere Pro (Advance Study)|Adobe After Effects (Interface & Effects)|Video Mixing & Editing|Visual Effects|Photo Editing & Retouching', 0],
+
+    ['Textile Designing', 'textile-designing', 'Skill', 'Textile Designing & Digital Print',
+     'Learn textile design principles and digital print techniques. Create patterns, fabric designs, and digital print-ready artwork.',
+     '3 Months', 'Basic computer knowledge',
+     'Those interested in textile and fashion design. Entrepreneurs in textile business. Creative individuals.',
+     'Textile design fundamentals, pattern creation, digital print techniques, color theory for textiles, design software for fabric printing.',
+     'Textile Design, Pattern Creation, Digital Print, Color Theory, Fabric Design Software',
+     'Specialized skill for textile industry. Career in fashion and textile. Business opportunity. Creative outlet.',
+     'Textile Design Fundamentals|Pattern Creation|Digital Print Techniques|Color Theory for Textiles|Fabric Design Software|Print-Ready Artwork', 0],
+
+    ['Embroidery Designing', 'embroidery-designing', 'Skill', 'Multi Embroidery Designing',
+     'Learn computerized embroidery design creation. Master multi-head embroidery machines and design software for embroidery.',
+     '3 Months', 'Basic computer knowledge',
+     'Those interested in embroidery business. Fashion designers. Entrepreneurs in garment industry.',
+     'Embroidery design software, digitizing techniques, multi-head machine operation, pattern creation, thread color management.',
+     'Embroidery Design, Digitizing, Machine Operation, Pattern Creation, Thread Management',
+     'Specialized vocational skill. Business opportunity in garment industry. High-demand skill. Practical training.',
+     'Embroidery Design Software|Digitizing Techniques|Multi-Head Machine Operation|Pattern Creation|Thread Color Management|Design Editing', 0],
+
+    ['Personality Development', 'personality-development', 'Skill', 'Personality Development & Communication',
+     'Build confidence, improve communication skills, and develop a professional personality. Includes spoken English, interview skills, and workplace etiquette.',
+     '2 Months', 'No prerequisites',
+     'Students preparing for interviews. Professionals wanting career growth. Anyone wanting to build confidence.',
+     'Communication skills, spoken English, interview preparation, presentation skills, workplace etiquette, confidence building.',
+     'Communication, Spoken English, Interview Skills, Presentation, Etiquette, Confidence',
+     'Boost your confidence. Improve job prospects. Better communication. Professional growth.',
+     'Communication Skills|Spoken English|Interview Preparation|Presentation Skills|Workplace Etiquette|Confidence Building|Public Speaking', 0],
+
+    ['Mehandi Course', 'mehandi-course', 'Skill', 'Professional Mehandi (Henna) Design Course',
+     'Learn professional Mehandi design from basics to advanced patterns. Includes bridal Mehandi, Arabic designs, Indo-Arabic fusion, and modern trends.',
+     '2 Months', 'No prerequisites',
+     'Those wanting to learn Mehandi professionally. Aspiring Mehandi artists. Entrepreneurs wanting to start a Mehandi business.',
+     'Basic to advanced Mehandi patterns, bridal designs, Arabic Mehandi, Indo-Arabic fusion, cone making, color mixing, speed practice.',
+     'Basic Patterns, Bridal Mehandi, Arabic Designs, Indo-Arabic Fusion, Cone Making',
+     'Start your own Mehandi business. Flexible working hours. High demand during wedding season. Creative skill.',
+     'Basic Patterns & Practice|Bridal Mehandi Designs|Arabic Mehandi|Indo-Arabic Fusion|Cone Making & Handling|Color Mixing|Speed Practice|Modern Trends', 0]
   ];
-  
+
   for (const c of courseData) {
     insert.run(...c);
   }
-  
   console.log(`Seeded ${courseData.length} courses`);
 }
 
