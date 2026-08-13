@@ -37,7 +37,7 @@ router.put('/:id/status', (req, res) => {
 router.post('/payment', (req, res) => {
   const { name, phone, course, amount, transaction_id } = req.body;
   if (!name || !phone || !amount) return res.status(400).json({ error: 'Name, phone and amount required' });
-  db.prepare('INSERT INTO payments (name, phone, course, amount, transaction_id, status) VALUES (?,?,?,?,?,?)').run(name, phone, course || null, amount, transaction_id || null, 'pending');
+  const result = db.prepare('INSERT INTO payments (name, phone, course, amount, transaction_id, status) VALUES (?,?,?,?,?,?)').run(name, phone, course || null, amount, transaction_id || null, 'pending');
   res.json({ id: result.lastInsertRowid, success: true, status: 'pending' });
 });
 
