@@ -41,13 +41,14 @@
       const phone = document.getElementById('payPhone').value.trim();
       const course = document.getElementById('payCourse').value;
       const amount = document.getElementById('payAmount').value.trim();
+      const txn = document.getElementById('payTxn').value.trim();
       const err = document.getElementById('payError');
       const msg = document.getElementById('paySuccess');
 
       err.style.display = 'none';
       msg.style.display = 'none';
 
-      if (!name || !phone || !amount) {
+      if (!name || !phone || !amount || !txn) {
         err.textContent = 'Please fill all required fields';
         err.style.display = 'block';
         return;
@@ -61,14 +62,15 @@
         const r = await fetch(API_BASE + '/students/payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, course: course || null, amount })
+          body: JSON.stringify({ name, phone, course: course || null, amount, transaction_id: txn })
         });
         const data = await r.json();
         if (!r.ok) throw new Error(data.error || 'Failed');
 
-        msg.textContent = 'Payment submitted successfully! The institute will contact you to confirm.';
+        msg.textContent = 'Payment details submitted! The institute will verify your payment and confirm it.';
         msg.style.display = 'block';
         document.getElementById('payAmount').value = '';
+        document.getElementById('payTxn').value = '';
         btn.textContent = 'Submit Another Payment';
         btn.disabled = false;
       } catch(e) {
