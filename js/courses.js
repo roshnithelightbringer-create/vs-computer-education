@@ -52,6 +52,16 @@ async function loadCourses() {
   const skillGrid = document.getElementById('skillGrid');
   if (!diplomaGrid && !skillGrid) return;
   
+  // If content already exists (static HTML), don't overwrite
+  if (diplomaGrid && diplomaGrid.children.length > 1) {
+    console.log('Courses already loaded, skipping API fetch');
+    return;
+  }
+  if (skillGrid && skillGrid.children.length > 1) {
+    console.log('Skill courses already loaded, skipping API fetch');
+    return;
+  }
+  
   try {
     const resp = await apiFetch('/courses');
     const all = resp.courses || [];
