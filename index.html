@@ -22,7 +22,19 @@
 .scroll-fade-delay-4{transition-delay:.4s}
 .feature-card,.contact-card,.course-card{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
 .feature-card.visible,.contact-card.visible,.course-card.visible{opacity:1;transform:translateY(0)}
-.campus-section{padding:var(--space-3xl) 0;background:var(--color-section-alt)}.campus-grid{display:grid;grid-template-columns:2fr 1fr;gap:var(--space-xl);margin-top:var(--space-2xl)}.campus-card{border-radius:var(--radius-xl);overflow:hidden;position:relative}.campus-card .campus-img-wrapper{position:relative;width:100%;height:100%;overflow:hidden}.campus-card .campus-img-wrapper img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}.campus-card:hover .campus-img-wrapper img{transform:scale(1.03)}.campus-card-wide .campus-img-wrapper{aspect-ratio:16/9;max-height:420px}.campus-card-tall .campus-img-wrapper{aspect-ratio:4/3;max-height:420px}.campus-overlay{position:absolute;bottom:0;left:0;right:0;padding:var(--space-xl);background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff}.campus-tag{display:inline-block;background:var(--color-primary);color:#fff;padding:4px 14px;border-radius:50px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:var(--space-sm)}.campus-overlay h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}.campus-overlay p{font-size:.85rem;opacity:.85;line-height:1.5;margin:0}@media(max-width:768px){.campus-grid{grid-template-columns:1fr}.campus-card-wide .campus-img-wrapper,.campus-card-tall .campus-img-wrapper{aspect-ratio:16/10;max-height:300px}}
+.campus-section{padding:var(--space-3xl) 0;background:var(--color-section-alt)}
+.campus-grid{display:flex;flex-direction:column;gap:var(--space-lg);margin-top:var(--space-2xl)}
+.campus-card{border-radius:var(--radius-xl);overflow:hidden;position:relative}
+.campus-card .campus-img-wrapper{position:relative;width:100%;overflow:hidden}
+.campus-card .campus-img-wrapper img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+.campus-card:hover .campus-img-wrapper img{transform:scale(1.03)}
+.campus-card-hero .campus-img-wrapper{aspect-ratio:21/9;max-height:400px}
+.campus-card-wide .campus-img-wrapper{aspect-ratio:16/9;max-height:350px}
+.campus-overlay{position:absolute;bottom:0;left:0;right:0;padding:var(--space-xl);background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff}
+.campus-tag{display:inline-block;background:var(--color-primary);color:#fff;padding:4px 14px;border-radius:50px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:var(--space-sm)}
+.campus-overlay h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.campus-overlay p{font-size:.85rem;opacity:.85;line-height:1.5;margin:0}
+@media(max-width:768px){.campus-card-hero .campus-img-wrapper{aspect-ratio:16/10;max-height:280px}.campus-card-wide .campus-img-wrapper{aspect-ratio:16/10;max-height:280px}}
 </style></head><body>
 <div id="splash-screen">
   <div class="splash-content">
@@ -37,7 +49,12 @@
     </div>
     <p class="splash-tagline">Learn. Grow. Succeed.</p>
   </div>
-</div><nav class="navbar" id="navbar"><div class="container"><a href="index.html" class="navbar-brand"><img src="assets/logo.svg" alt="VS Computer Education Logo" class="navbar-logo" onerror="this.style.display='none'"><div class="navbar-brand-text"><span class="navbar-brand-name">VS Computer Education</span><span class="navbar-brand-tagline">Learn. Grow. Succeed.</span></div></a><ul class="navbar-links" id="navLinks"><li><a href="index.html" class="active">Home</a></li><li><a href="about.html">About</a></li><li><a href="courses.html">Courses</a></li><li><a href="demo.html">Free Demo</a></li><li><a href="contact.html">Contact</a></li><li><a href="admin/" class="admin-link">Admin</a></li></ul><div class="navbar-cta"><a href="tel:+917041976140" class="btn btn-sm btn-outline">Call Now</a><a href="https://wa.me/917041976140" target="_blank" rel="noopener" class="btn btn-sm btn-whatsapp">WhatsApp</a></div><button class="navbar-toggle" id="navToggle" aria-label="Toggle menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div></nav><section class="hero"><div class="container"><div class="hero-badge">An ISO 9001:2015 Certified Institute</div><h1>Build Your Career with <span>Computer Skills</span></h1><p>VS Computer Education in Pandesara, Surat offers diploma and skill courses for students, professionals, and career growth. Learn from industry experts with practical training.</p><div class="hero-buttons"><a href="courses.html" class="btn btn-white">Explore Courses</a><a href="demo.html" class="btn-light">Book a Free Demo Class</a><a href="https://wa.me/917041976140" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp Us</a></div><div class="hero-stats"><div class="hero-stat"><div class="hero-stat-number">10+</div><div class="hero-stat-label">Courses Offered</div></div><div class="hero-stat"><div class="hero-stat-number">100%</div><div class="hero-stat-label">Job Placement</div></div><div class="hero-stat"><div class="hero-stat-number">10+</div><div class="hero-stat-label">Years Experience</div></div></div></div></section><section class="features"><div class="container"><div class="section-header"><span class="section-label">Why Choose Us</span><h2 class="section-title">Features & Benefits</h2><p class="section-subtitle">We provide quality computer education with practical training and personal attention.</p></div><div class="features-grid"><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><h3>Certified Courses</h3><p>Industry-recognized diploma and certificate programs designed for career success.</p></div><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Expert Trainers</h3><p>Learn from experienced instructors with years of industry and teaching experience.</p></div><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Flexible Timing</h3><p>Morning, afternoon, and evening batches available. Learn at your convenience.</p></div><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><h3>Practical Training</h3><p>Hands-on learning with real projects. Unlimited free practice hours for all students.</p></div></div></div></section><!-- Campus Section -->
+</div><nav class="navbar" id="navbar"><div class="container"><a href="index.html" class="navbar-brand"><img src="assets/logo.svg" alt="VS Computer Education Logo" class="navbar-logo" onerror="this.style.display='none'"><div class="navbar-brand-text"><span class="navbar-brand-name">VS Computer Education</span><span class="navbar-brand-tagline">Learn. Grow. Succeed.</span></div></a><ul class="navbar-links" id="navLinks"><li><a href="index.html" class="active">Home</a></li><li><a href="about.html">About</a></li><li><a href="courses.html">Courses</a></li><li><a href="demo.html">Free Demo</a></li><li><a href="contact.html">Contact</a></li><li><a href="admin/" class="admin-link">Admin</a></li></ul><div class="navbar-cta"><a href="tel:+917041976140" class="btn btn-sm btn-outline">Call Now</a><a href="https://wa.me/917041976140" target="_blank" rel="noopener" class="btn btn-sm btn-whatsapp">WhatsApp</a></div><button class="navbar-toggle" id="navToggle" aria-label="Toggle menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div></nav><section class="hero"><div class="container"><div class="hero-badge">An ISO 9001:2015 Certified Institute</div><h1>Build Your Career with <span>Computer Skills</span></h1><p>VS Computer Education in Pandesara, Surat offers diploma and skill courses for students, professionals, and career growth. Learn from industry experts with practical training.</p><div class="hero-buttons"><a href="courses.html" class="btn btn-white">Explore Courses</a><a href="demo.html" class="btn-light">Book a Free Demo Class</a><a href="https://wa.me/917041976140" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp Us</a></div><div class="hero-stats"><div class="hero-stat"><div class="hero-stat-number">10+</div><div class="hero-stat-label">Courses Offered</div></div><div class="hero-stat"><div class="hero-stat-number">100%</div><div class="hero-stat-label">Job Placement</div></div><div class="hero-stat"><div class="hero-stat-number">10+</div><div class="hero-stat-label">Years Experience</div></div>
+
+</div></div></section><section class="features"><div class="container"><div class="section-header"><span class="section-label">Why Choose Us</span><h2 class="section-title">Features & Benefits</h2><p class="section-subtitle">We provide quality computer education with practical training and personal attention.</p></div><div class="features-grid"><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><h3>Certified Courses</h3><p>Industry-recognized diploma and certificate programs designed for career success.</p></div><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Expert Trainers</h3><p>Learn from experienced instructors with years of industry and teaching experience.</p></div><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Flexible Timing</h3><p>Morning, afternoon, and evening batches available. Learn at your convenience.</p></div><div class="feature-card fade-in"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><h3>Practical Training</h3><p>Hands-on learning with real projects. Unlimited free practice hours for all students.</p></div></div></div></section>
+
+<!-- Campus Section -->
+<!-- Campus Section -->
 <section class="campus-section" id="campus">
   <div class="container">
     <div class="section-header">
@@ -46,23 +63,43 @@
       <p class="section-subtitle">Modern facilities, practical labs, and a comfortable learning environment.</p>
     </div>
     <div class="campus-grid">
-      <div class="campus-card campus-card-wide scroll-fade">
+      <div class="campus-card campus-card-hero scroll-fade">
         <div class="campus-img-wrapper">
-          <img src="assets/interior.jpg" alt="VS Computer Education - Computer Lab" loading="lazy">
+          <img src="assets/exterior.jpg" alt="VS Computer Education - Building Exterior" loading="lazy">
           <div class="campus-overlay">
-            <span class="campus-tag">Computer Lab</span>
-            <h3>Practical Training Lab</h3>
-            <p>Modern systems with individual workstations for hands-on learning.</p>
+            <span class="campus-tag">Institute Building</span>
+            <h3>VS Computer Education</h3>
+            <p>Radheyshyam Nagar, Near Galaxy School, Pandesara, Surat</p>
           </div>
         </div>
       </div>
-      <div class="campus-card campus-card-tall scroll-fade scroll-fade-delay-1">
+      <div class="campus-card campus-card-wide scroll-fade scroll-fade-delay-1">
         <div class="campus-img-wrapper">
-          <img src="assets/exterior.jpg" alt="VS Computer Education - Entrance & Reception" loading="lazy">
+          <img src="assets/lab.jpg" alt="VS Computer Education - Computer Lab" loading="lazy">
+          <div class="campus-overlay">
+            <span class="campus-tag">Computer Lab</span>
+            <h3>Practical Training Lab</h3>
+            <p>Lenovo ThinkVision systems with individual workstations for hands-on learning.</p>
+          </div>
+        </div>
+      </div>
+      <div class="campus-card campus-card-wide scroll-fade scroll-fade-delay-2">
+        <div class="campus-img-wrapper">
+          <img src="assets/interior.jpg" alt="VS Computer Education - Entrance Hall" loading="lazy">
           <div class="campus-overlay">
             <span class="campus-tag">Entrance &amp; Reception</span>
-            <h3>Welcome to VS Computer Education</h3>
-            <p>Visit us at Radheyshyam Nagar, Pandesara, Surat.</p>
+            <h3>Welcome Area</h3>
+            <p>Spacious entrance with reception desk for student inquiries and admissions.</p>
+          </div>
+        </div>
+      </div>
+      <div class="campus-card campus-card-wide scroll-fade scroll-fade-delay-3">
+        <div class="campus-img-wrapper">
+          <img src="assets/reception.jpg" alt="VS Computer Education - Reception &amp; Facilities" loading="lazy">
+          <div class="campus-overlay">
+            <span class="campus-tag">Facilities</span>
+            <h3>Well-Maintained Premises</h3>
+            <p>Air-conditioned environment with safety equipment and security monitoring.</p>
           </div>
         </div>
       </div>
