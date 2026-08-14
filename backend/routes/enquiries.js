@@ -1,5 +1,10 @@
 const db = require('../database');
 const router = require('express').Router();
+const { sendWhatsApp, enquiryMsg } = require('../whatsapp');
+
+function notifySoon(msg) {
+  setImmediate(() => sendWhatsApp(msg).catch(e => console.error('[whatsapp]', e.message)));
+}
 
 router.get('/', (req, res) => {
   const { status, search } = req.query;
@@ -16,6 +21,8 @@ router.post('/', (req, res) => {
   const { name, phone, course, message, enquiry_type } = req.body;
   if (!name || !phone) return res.status(400).json({ error: 'Name and phone required' });
   const result = db.prepare('INSERT INTO enquiries (name, phone, course, message, enquiry_type) VALUES (?,?,?,?,?)').run(name, phone, course || null, message || null, enquiry_type || 'general');
+  const enquiry = { id: result.lastInsertRowid, name, phone, course, message, enquiry_type: enquiry_type || 'general' };
+  notifySoon(enquiryMsg(enquiry));
   res.json({ id: result.lastInsertRowid, success: true });
 });
 
