@@ -7,6 +7,8 @@
 .splash-loader{width:200px;height:3px;background:rgba(255,255,255,.1);border-radius:4px;margin:0 auto 16px;overflow:hidden}
 .splash-bar{height:100%;width:0;background:linear-gradient(90deg,#3b82f6,#60a5fa);border-radius:4px;animation:splashLoad 1.4s ease forwards}
 .splash-tagline{color:rgba(255,255,255,.5);font-size:.85rem;font-family:Arial,sans-serif;letter-spacing:1px}
+.splash-logo-img{max-width:90%;height:auto;display:block;margin:0 auto}
+
 @keyframes splashFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes splashLoad{0%{width:0}100%{width:100%}}
 .hero h1 .typing-cursor{display:inline-block;width:3px;height:1.2em;background:#60a5fa;margin-left:4px;vertical-align:text-bottom;animation:blink .8s step-end infinite}
@@ -56,10 +58,7 @@
 <div id="splash-screen">
   <div class="splash-content">
     <div class="splash-logo">
-      <svg viewBox="0 0 200 60" width="180" height="54">
-        <rect width="200" height="60" rx="12" fill="#2563eb"/>
-        <text x="100" y="38" font-size="22" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial">VS Computer Education</text>
-      </svg>
+      <img src="assets/logo-splash.png" alt="VS Computer Education" class="splash-logo-img">
     </div>
     <div class="splash-loader">
       <div class="splash-bar"></div>
