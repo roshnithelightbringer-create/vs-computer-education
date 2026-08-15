@@ -133,7 +133,7 @@
     .mascot-float #mascot-body { animation: floatAnim 4s ease-in-out infinite; }
     @keyframes floatAnim {
       0%, 100% { transform: translateY(0) rotate(0); }
-      50% { transform: translateY(-6px) rotate(2deg); }
+      50% { transform: translateY(-10px) rotate(3deg); }
     }
     .mascot-sit #mascot-body { animation: sitAnim 2s ease-in-out infinite; }
     @keyframes sitAnim {
@@ -333,8 +333,8 @@
       state.y += (state.targetY - state.y) * 0.08;
     } else {
       // Gentle drift near bottom-right corner
-      const targetX = window.innerWidth - 190 + Math.sin(now * 0.001) * 30;
-      const targetY = window.innerHeight - 230 + Math.cos(now * 0.0007) * 20;
+      const targetX = window.innerWidth - 190 + Math.sin(now * 0.001) * 60;
+      const targetY = window.innerHeight - 230 + Math.cos(now * 0.0007) * 40;
       state.x += (targetX - state.x) * 0.02;
       state.y += (targetY - state.y) * 0.02;
     }
