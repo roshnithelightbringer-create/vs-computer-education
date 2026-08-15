@@ -78,8 +78,22 @@
   // Listen for scroll
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  // Check initial position (in case already scrolled)
+  // Check initial position immediately + after gate dismisses
   onScroll();
+  // Retry after a short delay in case body overflow was hiding scroll
+  setTimeout(onScroll, 500);
+  setTimeout(onScroll, 1500);
+  // Also watch for gate dismissal
+  const gateObserver = new MutationObserver(() => {
+    if (document.getElementById('studentGate')?.style?.display === 'none' || 
+        !document.getElementById('studentGate')) {
+      onScroll();
+    }
+  });
+  const gate = document.getElementById('studentGate');
+  if (gate) {
+    gateObserver.observe(gate, { attributes: true, attributeFilter: ['style'] });
+  }
 
   // Expose so we can clean up
   window.__mascotCleanup = function() {
