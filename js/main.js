@@ -8,53 +8,63 @@ if (navToggle && navLinks) {
   navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
   navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
 }
+
+// Navbar shrink + scrolled state
 if (navbar) {
-  window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 20); });
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+    navbar.classList.toggle('shrink', window.scrollY > 120);
+  });
 }
 
-// Splash screen
+// Splash screen - quick 0.4s fade, no fake progress bar
 window.addEventListener('load', () => {
   setTimeout(() => {
     const splash = document.getElementById('splash-screen');
     if (splash) splash.classList.add('hidden');
-    // Start typing effect after splash
-    startTyping();
-    // Start stat counters
     observeStats();
-  }, 1500);
+    setTimeout(typeWord, 600);
+  }, 400);
 });
 
-// Typing effect
-function startTyping() {
-  const h1 = document.querySelector('.hero h1');
-  if (!h1) return;
-  const text = h1.textContent.trim();
-  h1.textContent = '';
-  h1.innerHTML = '<span class="typing-text"></span><span class="typing-cursor">|</span>';
-  const span = h1.querySelector('.typing-text');
-  let i = 0;
-  function type() {
-    if (i < text.length) {
-      span.textContent += text[i];
-      i++;
-      setTimeout(type, 30 + Math.random() * 20);
-    } else {
-      const cursor = h1.querySelector('.typing-cursor');
-      setTimeout(() => { if (cursor) cursor.style.display = 'none'; }, 1500);
-    }
+// Rotating hero words
+const rotatingWords = ['Computer Skills', 'Tally Prime', 'Graphic Design', 'Hardware & Networking'];
+let wordIndex = 0;
+let charIndex = 0;
+let deleting = false;
+const rotatingEl = document.getElementById('rotating-word');
+
+function typeWord() {
+  if (!rotatingEl) return;
+  const current = rotatingWords[wordIndex];
+  if (deleting) {
+    charIndex--;
+    rotatingEl.textContent = current.substring(0, charIndex);
+  } else {
+    charIndex++;
+    rotatingEl.textContent = current.substring(0, charIndex);
   }
-  setTimeout(type, 300);
+  let speed = deleting ? 40 : 80;
+  if (!deleting && charIndex === current.length) {
+    speed = 1800;
+    deleting = true;
+  } else if (deleting && charIndex === 0) {
+    deleting = false;
+    wordIndex = (wordIndex + 1) % rotatingWords.length;
+    speed = 300;
+  }
+  setTimeout(typeWord, speed);
 }
 
-// Stat counters
+// Stat counters (count up from 0 when hero scrolls into view)
 function observeStats() {
-  const stats = document.querySelectorAll('.hero-stat');
-  if (!stats.length) return;
+  const nums = document.querySelectorAll('.stat-number');
+  if (!nums.length) return;
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        const num = e.target.querySelector('.stat-number');
-        if (num && !num.dataset.counted) {
+        const num = e.target;
+        if (!num.dataset.counted) {
           num.dataset.counted = 'true';
           animateCounter(num);
         }
@@ -62,27 +72,44 @@ function observeStats() {
       }
     });
   }, { threshold: 0.5 });
-  stats.forEach(s => obs.observe(s));
+  nums.forEach(n => obs.observe(n));
 }
 
 function animateCounter(el) {
-  const text = el.textContent;
-  const match = text.match(/(\\d+)\\s*(\\+)?/);
-  if (!match) return;
-  const target = parseInt(match[1]);
-  const suffix = match[2] || '';
+  const target = parseInt(el.dataset.target || '0', 10);
   const duration = 1200;
   const start = performance.now();
   function update(now) {
     const elapsed = now - start;
     const progress = Math.min(elapsed / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
-    const current = Math.round(eased * target);
-    el.textContent = current + suffix;
+    el.textContent = Math.round(eased * target);
     if (progress < 1) requestAnimationFrame(update);
   }
   requestAnimationFrame(update);
 }
+
+// Testimonial carousel - auto-advances every 5s
+function initTestimonials() {
+  const track = document.getElementById('testimonialTrack');
+  const dots = document.querySelectorAll('#testimonialDots .dot');
+  if (!track || !dots.length) return;
+  let current = 0;
+  const total = track.children.length;
+  function goTo(i) {
+    current = (i + total) % total;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    dots.forEach((d, di) => d.classList.toggle('active', di === current));
+  }
+  dots.forEach((d, di) => d.addEventListener('click', () => {
+    goTo(di);
+    clearInterval(interval);
+    interval = setInterval(() => goTo(current + 1), 5000);
+  }));
+  let interval = setInterval(() => goTo(current + 1), 5000);
+}
+
+initTestimonials();
 
 // Scroll fade animations
 const fadeEls = document.querySelectorAll('.fade-in, .scroll-fade, .feature-card, .contact-card, .course-card');
