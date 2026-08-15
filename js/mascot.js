@@ -17,7 +17,6 @@
   const mascot = document.getElementById('site-mascot');
   const bubble = document.getElementById('mascot-bubble');
   const bubbleText = document.getElementById('mascot-bubble-text');
-  const body = document.getElementById('mascot-body');
 
   if (!mascot) return;
 
@@ -43,62 +42,49 @@
     }, 600);
   }
 
-  // Scroll reveal
-  let scrollRAF = null;
+  // Scroll reveal (backup in case gate dismisses)
   function onScroll() {
-    if (scrollRAF) return;
-    scrollRAF = requestAnimationFrame(() => {
-      const scrollY = window.scrollY || window.pageYOffset;
-      if (scrollY > 180 && !isVisible) {
-        isVisible = true;
-        mascot.classList.add('revealed');
-        // Welcome wave + first message
-        setTimeout(() => {
-          mascot.classList.add('wave-active');
-          setTimeout(() => mascot.classList.remove('wave-active'), 1200);
-        }, 800);
-        // First message after wave
-        setTimeout(showMessage, 2000);
-        // Start periodic messages
-        startPeriodicMessages();
-      }
-      scrollRAF = null;
-    });
+    if (isVisible) return;
+    const scrollY = window.scrollY || window.pageYOffset;
+    if (scrollY > 180) {
+      forceReveal();
+    }
   }
 
+  // Periodic messages
   let messageInterval = null;
   function startPeriodicMessages() {
     if (messageInterval) return;
     messageInterval = setInterval(showMessage, 8000);
   }
 
-  // Click handler
-  mascot.addEventListener('click', jump);
-
-  // Listen for scroll
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  // Check initial position immediately + after gate dismisses
-  onScroll();
-  // Retry after a short delay in case body overflow was hiding scroll
-  setTimeout(onScroll, 500);
-  setTimeout(onScroll, 1500);
-  // Also watch for gate dismissal
-  const gateObserver = new MutationObserver(() => {
-    if (document.getElementById('studentGate')?.style?.display === 'none' || 
-        !document.getElementById('studentGate')) {
-      onScroll();
-    }
-  });
-  const gate = document.getElementById('studentGate');
-  if (gate) {
-    gateObserver.observe(gate, { attributes: true, attributeFilter: ['style'] });
+  // Core reveal function
+  function forceReveal() {
+    if (isVisible) return;
+    isVisible = true;
+    mascot.classList.add('revealed');
+    // Welcome wave
+    setTimeout(() => {
+      mascot.classList.add('wave-active');
+      setTimeout(() => mascot.classList.remove('wave-active'), 1200);
+    }, 600);
+    // First message
+    setTimeout(showMessage, 1400);
+    // Periodic messages
+    setTimeout(startPeriodicMessages, 3000);
   }
 
-  // Expose so we can clean up
-  window.__mascotCleanup = function() {
-    window.removeEventListener('scroll', onScroll);
-    clearInterval(messageInterval);
-    clearTimeout(speechTimer);
-  };
+  // Reveal immediately — gate overlay is at z-index 9999,
+  // mascot is at 10000, so she floats on top of the dark overlay
+  setTimeout(forceReveal, 100);
+
+  // Also try on scroll as fallback
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Tap to jump
+  mascot.addEventListener('click', jump);
+  mascot.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    jump();
+  }, { passive: false });
 })();
