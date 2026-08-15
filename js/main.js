@@ -9,15 +9,7 @@ if (navToggle && navLinks) {
   navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
 }
 
-// Navbar shrink + scrolled state
-if (navbar) {
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 20);
-    navbar.classList.toggle('shrink', window.scrollY > 120);
-  });
-}
-
-// Splash screen - quick 0.4s fade, no fake progress bar
+// Splash screen + start everything
 window.addEventListener('load', () => {
   setTimeout(() => {
     const splash = document.getElementById('splash-screen');
@@ -27,36 +19,7 @@ window.addEventListener('load', () => {
   }, 400);
 });
 
-// Rotating hero words
-const rotatingWords = ['Computer Skills', 'Tally Prime', 'Graphic Design', 'Hardware & Networking'];
-let wordIndex = 0;
-let charIndex = 0;
-let deleting = false;
-const rotatingEl = document.getElementById('rotating-word');
-
-function typeWord() {
-  if (!rotatingEl) return;
-  const current = rotatingWords[wordIndex];
-  if (deleting) {
-    charIndex--;
-    rotatingEl.textContent = current.substring(0, charIndex);
-  } else {
-    charIndex++;
-    rotatingEl.textContent = current.substring(0, charIndex);
-  }
-  let speed = deleting ? 40 : 80;
-  if (!deleting && charIndex === current.length) {
-    speed = 1800;
-    deleting = true;
-  } else if (deleting && charIndex === 0) {
-    deleting = false;
-    wordIndex = (wordIndex + 1) % rotatingWords.length;
-    speed = 300;
-  }
-  setTimeout(typeWord, speed);
-}
-
-// Stat counters (count up from 0 when hero scrolls into view)
+// Stat counters
 function observeStats() {
   const nums = document.querySelectorAll('.stat-number');
   if (!nums.length) return;
@@ -89,7 +52,36 @@ function animateCounter(el) {
   requestAnimationFrame(update);
 }
 
-// Testimonial carousel - auto-advances every 5s
+// Rotating words
+const rotatingWords = ['Computer Skills', 'Tally Prime', 'Graphic Design', 'Hardware & Networking'];
+let wordIndex = 0;
+let charIndex = 0;
+let deleting = false;
+const rotatingEl = document.getElementById('rotating-word');
+
+function typeWord() {
+  if (!rotatingEl) return;
+  const current = rotatingWords[wordIndex];
+  if (deleting) {
+    charIndex--;
+    rotatingEl.textContent = current.substring(0, charIndex);
+  } else {
+    charIndex++;
+    rotatingEl.textContent = current.substring(0, charIndex);
+  }
+  let speed = deleting ? 40 : 80;
+  if (!deleting && charIndex === current.length) {
+    speed = 1800;
+    deleting = true;
+  } else if (deleting && charIndex === 0) {
+    deleting = false;
+    wordIndex = (wordIndex + 1) % rotatingWords.length;
+    speed = 300;
+  }
+  setTimeout(typeWord, speed);
+}
+
+// Testimonial carousel
 function initTestimonials() {
   const track = document.getElementById('testimonialTrack');
   const dots = document.querySelectorAll('#testimonialDots .dot');
@@ -106,22 +98,29 @@ function initTestimonials() {
     clearInterval(interval);
     interval = setInterval(() => goTo(current + 1), 5000);
   }));
-  let interval = setInterval(() => goTo(current + 1), 5000);
+  const interval = setInterval(() => goTo(current + 1), 5000);
 }
-
 initTestimonials();
+
+// Navbar shrink
+if (navbar) {
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+    navbar.classList.toggle('shrink', window.scrollY > 120);
+  });
+}
 
 // Scroll fade animations
 const fadeEls = document.querySelectorAll('.fade-in, .scroll-fade, .feature-card, .contact-card, .course-card');
-const obs = new IntersectionObserver((entries) => {
+const fadeObs = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {
       e.target.classList.add('visible');
-      obs.unobserve(e.target);
+      fadeObs.unobserve(e.target);
     }
   });
 }, { rootMargin: '0px 0px -60px 0px', threshold: 0.1 });
-fadeEls.forEach(el => obs.observe(el));
+fadeEls.forEach(el => fadeObs.observe(el));
 
 // API helper
 async function apiFetch(endpoint, opts = {}) {
