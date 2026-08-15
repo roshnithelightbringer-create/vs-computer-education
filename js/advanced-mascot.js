@@ -8,8 +8,8 @@
 
   // ---------- CONFIG ----------
   const POSES = {
-    float:  'assets/mascot.png',
-    float2: 'assets/mascot-alt.png',
+    float:  'assets/mascot-float.png',
+    float2: 'assets/mascot-float2.png',
     sit:    'assets/mascot-sit.png',
     lay:    'assets/mascot-lay.png',
     wave:   'assets/mascot-wave.png',
