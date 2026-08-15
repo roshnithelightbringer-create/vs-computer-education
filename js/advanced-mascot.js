@@ -1,12 +1,11 @@
 // ========================================================
-// Ultimate Mascot v4 - Fast & Expressive Anime Character
+// Ultimate Mascot v4 - Free Anime Character
 // VS Computer Education
 // ========================================================
 
 (function() {
   'use strict';
 
-  // ---------- CONFIG ----------
   const POSES = {
     float:  'assets/mascot-float.png',
     float2: 'assets/mascot-float2.png',
@@ -16,42 +15,36 @@
     sleep:  'assets/mascot-sleep.png'
   };
 
+  const POSE_LIST = ['float','float2','sit','lay','wave','sleep'];
+
   const MESSAGES = [
     "Need help choosing a course? 😊",
-    "We have a girls batch! 💁‍♀️",
-    "Free demo class available! 🎓",
-    "DCA, ADCA, ADCT, PGDCA! ✨",
+    "Girls batch available! 💁‍♀️",
+    "Free demo class 🎓",
+    "DCA, ADCA, ADCT, PGDCA ✨",
     "Tally Prime is our specialty! 💪",
-    "Ask me anything! 💕",
-    "Hi there! 👋",
-    "Check out our courses! 📚"
+    "Hi there! 👋"
   ];
 
-  const RANDOM_POSES = ['sit', 'lay', 'wave', 'float', 'float2'];
-
-  // ---------- STATE ----------
   let state = {
-    x: 120,
-    y: 200,
-    targetX: 120,
-    targetY: 200,
-    mouseX: 120,
-    mouseY: 200,
+    x: window.innerWidth * 0.7,
+    y: window.innerHeight * 0.6,
+    targetX: 0, targetY: 0,
+    mouseX: 0, mouseY: 0,
     lastMouse: Date.now(),
-    lastDance: Date.now() + 5000,
+    lastPoseChange: Date.now(),
     lastMsg: Date.now() + 2000,
-    lastRandomPose: Date.now(),
-    lastRoam: Date.now(),
-    msgIdx: 0,
+    lastDance: Date.now() + 10000,
+    lastFloatSwitch: Date.now(),
     dancing: false,
     jumping: false,
     currentPose: 'float',
     floatAngle: Math.random() * Math.PI * 2,
-    roamTargetX: 120,
-    roamTargetY: 200,
     isSleeping: false,
-    mouseDist: 999,
-    pointingAt: null
+    hoveredElement: null,
+    pointingAt: null,
+    wanderTarget: { x: 0, y: 0 },
+    wanderTimer: 0
   };
 
   // ---------- DOM ----------
@@ -86,8 +79,8 @@
       height: 100%;
       object-fit: contain;
       pointer-events: none;
-      transition: filter 0.2s;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.12));
+      transition: filter 0.3s, transform 0.3s;
     }
     #mascot-body:hover #mascot-img {
       filter: drop-shadow(0 4px 20px rgba(255,80,120,0.4)) brightness(1.05);
@@ -105,7 +98,7 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.25s, transform 0.25s;
+      transition: opacity 0.3s, transform 0.3s;
       transform: translateY(8px) scale(0.95);
       max-width: 220px;
       white-space: nowrap;
@@ -130,32 +123,27 @@
     .mascot-dance #mascot-body { animation: danceAnim 0.5s ease infinite; }
     @keyframes danceAnim {
       0%, 100% { transform: rotate(0) translateY(0); }
-      25% { transform: rotate(-12deg) translateY(-12px); }
-      75% { transform: rotate(12deg) translateY(-12px); }
+      25% { transform: rotate(-14deg) translateY(-14px); }
+      75% { transform: rotate(14deg) translateY(-14px); }
     }
     .mascot-jump #mascot-body { animation: jumpAnim 0.5s ease; }
     @keyframes jumpAnim {
       0% { transform: translateY(0) scale(1); }
-      30% { transform: translateY(-45px) scale(1.1); }
-      50% { transform: translateY(-55px) scale(0.95); }
+      30% { transform: translateY(-50px) scale(1.1); }
+      50% { transform: translateY(-60px) scale(0.95); }
       70% { transform: translateY(-20px) scale(1.05); }
       100% { transform: translateY(0) scale(1); }
     }
     .mascot-float #mascot-body { animation: floatAnim 3s ease-in-out infinite; }
     @keyframes floatAnim {
       0%, 100% { transform: translateY(0) rotate(0); }
-      33% { transform: translateY(-12px) rotate(-3deg); }
-      66% { transform: translateY(-6px) rotate(3deg); }
+      33% { transform: translateY(-14px) rotate(-3deg); }
+      66% { transform: translateY(-7px) rotate(3deg); }
     }
     .mascot-sit #mascot-body { animation: sitAnim 1.5s ease-in-out infinite; }
     @keyframes sitAnim {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
-    }
-    .mascot-leg-dangle { animation: legDangle 0.5s ease-in-out infinite !important; }
-    @keyframes legDangle {
-      0%, 100% { transform: rotate(-4deg); }
-      50% { transform: rotate(4deg); }
+      50% { transform: translateY(-5px); }
     }
     .mascot-lay {
       width: 130px !important;
@@ -164,38 +152,40 @@
     .mascot-lay #mascot-body { animation: layBreath 2.5s ease-in-out infinite; }
     @keyframes layBreath {
       0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-2px) scale(1.01); }
+      50% { transform: translateY(-3px) scale(1.01); }
     }
-    .mascot-wave #mascot-body { animation: waveAnim 0.6s ease-in-out infinite; }
+    .mascot-wave #mascot-body { animation: waveAnim 0.7s ease-in-out infinite; }
     @keyframes waveAnim {
       0%, 100% { transform: rotate(0) translateY(0); }
-      25% { transform: rotate(-15deg) translateY(-5px); }
-      75% { transform: rotate(15deg) translateY(-5px); }
+      25% { transform: rotate(-12deg) translateY(-5px); }
+      75% { transform: rotate(12deg) translateY(-5px); }
     }
     .mascot-sleep #mascot-body { animation: sleepBreath 3s ease-in-out infinite; }
     @keyframes sleepBreath {
       0%, 100% { transform: translateY(0) scale(1); }
       50% { transform: translateY(-2px) scale(1.02); }
     }
+    .mascot-point #mascot-body { animation: pointAnim 1.2s ease-in-out infinite; }
+    @keyframes pointAnim {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(8px) rotate(5deg); }
+    }
     .star-particle {
-      position: fixed; font-size: 14px; pointer-events: none;
-      z-index: 9999; animation: starFly 1.2s ease-out forwards;
+      position: fixed; font-size: 14px; pointer-events: none; z-index: 9999;
+      animation: starFly 1.2s ease-out forwards;
     }
     @keyframes starFly {
       0% { transform: translate(0,0) scale(1) rotate(0); opacity: 1; }
       100% { transform: translate(var(--sx), var(--sy)) scale(0) rotate(180deg); opacity: 0; }
     }
     .zzz-particle {
-      position: fixed; font-size: 18px; pointer-events: none;
-      z-index: 9999; animation: zzzFloat 2s ease-out forwards;
+      position: fixed; font-size: 16px; pointer-events: none; z-index: 9999;
+      animation: zzzFloat 2s ease-out forwards;
     }
     @keyframes zzzFloat {
       0% { transform: translate(0,0) scale(0.5); opacity: 0; }
       20% { opacity: 1; }
-      100% { transform: translate(20px, -60px) scale(1.3); opacity: 0; }
-    }
-    .mascot-point {
-      transform: scaleX(-1) !important;
+      100% { transform: translate(20px, -50px) scale(1.3); opacity: 0; }
     }
   `;
   document.head.appendChild(style);
@@ -210,30 +200,28 @@
   function setPose(pose) {
     if (state.currentPose === pose && pose !== 'float' && pose !== 'float2') return;
     state.currentPose = pose;
-
-    el.classList.remove('mascot-float', 'mascot-sit', 'mascot-lay', 'mascot-wave', 'mascot-sleep', 'mascot-leg-dangle', 'mascot-point');
-
-    const src = POSES[pose] || POSES.float;
-    if (img.src !== src) img.src = src;
-
-    body.style.width = '';
-    body.style.height = '';
-
+    el.classList.remove('mascot-float','mascot-sit','mascot-lay','mascot-wave','mascot-sleep','mascot-point');
+    img.src = POSES[pose] || POSES.float;
     switch(pose) {
       case 'float': case 'float2':
         el.classList.add('mascot-float');
+        body.style.width = '100px'; body.style.height = '140px';
         break;
       case 'sit':
-        el.classList.add('mascot-sit', 'mascot-leg-dangle');
+        el.classList.add('mascot-sit');
+        body.style.width = '110px'; body.style.height = '130px';
         break;
       case 'lay':
         el.classList.add('mascot-lay');
+        body.style.width = '130px'; body.style.height = '90px';
         break;
       case 'wave':
         el.classList.add('mascot-wave');
+        body.style.width = '100px'; body.style.height = '140px';
         break;
       case 'sleep':
         el.classList.add('mascot-sleep');
+        body.style.width = '100px'; body.style.height = '130px';
         break;
     }
   }
@@ -273,9 +261,8 @@
     if (state.dancing) return;
     state.dancing = true;
     el.classList.add('mascot-dance');
-    setPose('wave');
     spawnStars(6);
-    showMsg(['💃 Dance time!','🎶 La la la!','😊 Feeling good!','✨✨✨'][Math.floor(Math.random()*4)]);
+    showMsg(['💃 Dance!','🎶 La la la!','😊✨','Feeling good!','✨💖✨'][Math.floor(Math.random()*5)]);
     setTimeout(() => {
       el.classList.remove('mascot-dance');
       state.dancing = false;
@@ -286,7 +273,7 @@
     if (state.jumping) return;
     state.jumping = true;
     el.classList.add('mascot-jump');
-    spawnStars(5);
+    spawnStars(4);
     setTimeout(() => {
       el.classList.remove('mascot-jump');
       state.jumping = false;
@@ -294,57 +281,15 @@
   }
 
   function randomPose() {
-    if (state.dancing) return;
-    const pose = RANDOM_POSES[Math.floor(Math.random() * RANDOM_POSES.length)];
-    setPose(pose);
-    if (Math.random() < 0.3) spawnStars(3);
+    const poses = ['float','float2','sit','lay','wave'];
+    return poses[Math.floor(Math.random() * poses.length)];
   }
 
-  function newRoamTarget() {
-    state.roamTargetX = 50 + Math.random() * (window.innerWidth - 200);
-    state.roamTargetY = 80 + Math.random() * (window.innerHeight - 250);
-  }
-
-  // ---------- POINTING AT COURSES ----------
-  function checkPointing() {
-    const courseCards = document.querySelectorAll('.course-card, .card, [class*="course"], .course-item, h3, .course-title');
-    let closest = null;
-    let closestDist = 999;
-
-    courseCards.forEach(card => {
-      const r = card.getBoundingClientRect();
-      const cx = r.left + r.width/2;
-      const cy = r.top + r.height/2;
-      const dx = state.x + 50 - cx;
-      const dy = state.y + 70 - cy;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-
-      if (dist < 250 && dist < closestDist) {
-        closest = { el: card, rect: r, dist };
-        closestDist = dist;
-      }
-    });
-
-    if (closest) {
-      // Point toward the course card
-      const cardCenterX = closest.rect.left + closest.rect.width/2;
-      if (cardCenterX < state.x + 50) {
-        // Course is to the left - flip mascot to point
-        el.classList.add('mascot-point');
-      } else {
-        el.classList.remove('mascot-point');
-      }
-
-      if (!state.pointingAt || state.pointingAt !== closest.el) {
-        state.pointingAt = closest.el;
-        showMsg(['Check this out! 👆', 'This course is great! ✨', 'I recommend this! 💕', 'Learn this! 📚'][Math.floor(Math.random()*4)]);
-      }
-      return true;
-    }
-
-    state.pointingAt = null;
-    el.classList.remove('mascot-point');
-    return false;
+  function setNewWanderTarget() {
+    const margin = 100;
+    state.wanderTarget.x = margin + Math.random() * (window.innerWidth - margin * 2 - 140);
+    state.wanderTarget.y = margin + Math.random() * (window.innerHeight - margin * 2 - 190);
+    state.wanderTimer = 3000 + Math.random() * 5000;
   }
 
   // ---------- EVENTS ----------
@@ -353,20 +298,12 @@
     state.mouseY = e.clientY;
     state.lastMouse = Date.now();
     state.isSleeping = false;
-
-    const dx = state.mouseX - (state.x + 50);
-    const dy = state.mouseY - (state.y + 70);
-    state.mouseDist = Math.sqrt(dx*dx + dy*dy);
   });
 
   body.addEventListener('click', e => {
     e.stopPropagation();
     jump();
-    showMsg(MESSAGES[state.msgIdx % MESSAGES.length]);
-    state.msgIdx++;
-    if (Math.random() < 0.5) {
-      setPose(state.currentPose === 'float' ? 'float2' : 'float');
-    }
+    showMsg(MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
   });
 
   // ---------- MAIN LOOP ----------
@@ -374,69 +311,62 @@
     const now = Date.now();
     const dt = now - state.lastMouse;
 
-    // ---- Pointing at course names ----
-    const isPointing = checkPointing();
-
-    // ---- Pose Logic ----
-    if (state.dancing) {
-      // dancing - do nothing
-    } else if (isPointing) {
-      // Keep current pose while pointing
-    } else if (dt > 30000 && !state.isSleeping) {
-      state.isSleeping = true;
-      setPose('sleep');
-    } else if (dt > 30000 && state.isSleeping) {
-      if (Math.random() < 0.03) spawnZzz();
-    } else if (state.mouseDist < 80 && state.currentPose !== 'wave') {
-      setPose('wave');
-    } else if (state.mouseDist >= 80 && state.currentPose === 'wave' && !isPointing) {
-      setPose('float');
-    }
-
-    // ---- Random pose changes every 8-15s (FAST!) ----
-    if (!state.dancing && !state.isSleeping && state.mouseDist > 100 && now - state.lastRandomPose > 8000 + Math.random() * 7000) {
-      randomPose();
-      state.lastRandomPose = now;
-    }
-
-    // ---- Movement (FAST) ----
-    if (dt < 1500) {
-      // Follow cursor - FASTER
-      state.targetX = Math.max(10, Math.min(innerWidth-140, state.mouseX - 50));
-      state.targetY = Math.max(10, Math.min(innerHeight-180, state.mouseY - 70));
-      state.x += (state.targetX - state.x) * 0.18;
-      state.y += (state.targetY - state.y) * 0.18;
-    } else if (dt < 5000) {
-      // Slow drift
-      state.floatAngle += 0.01;
-      state.targetX = (innerWidth - 190) + Math.sin(state.floatAngle) * 60;
-      state.targetY = (innerHeight - 220) + Math.cos(state.floatAngle * 0.7) * 50;
-      state.x += (state.targetX - state.x) * 0.05;
-      state.y += (state.targetY - state.y) * 0.05;
+    // --- WANDER / FOLLOW ---
+    if (dt < 1000) {
+      // Follow cursor (offset slightly so she's not blocking)
+      state.targetX = Math.max(10, Math.min(innerWidth-140, state.mouseX - 30));
+      state.targetY = Math.max(10, Math.min(innerHeight-190, state.mouseY - 100));
+      state.x += (state.targetX - state.x) * 0.12;
+      state.y += (state.targetY - state.y) * 0.12;
     } else {
-      // Roam around the screen
-      const distToRoam = Math.hypot(state.roamTargetX - state.x, state.roamTargetY - state.y);
-      if (distToRoam < 30 || now - state.lastRoam > 5000) {
-        newRoamTarget();
-        state.lastRoam = now;
-      }
-      state.x += (state.roamTargetX - state.x) * 0.04;
-      state.y += (state.roamTargetY - state.y) * 0.04;
+      // Wander around freely
+      if (state.wanderTimer <= 0) setNewWanderTarget();
+      state.wanderTimer -= 16;
+      state.x += (state.wanderTarget.x - state.x) * 0.03;
+      state.y += (state.wanderTarget.y - state.y) * 0.03;
+      // Extra float motion
+      state.floatAngle += 0.01;
+      state.x += Math.sin(state.floatAngle) * 0.3;
+      state.y += Math.cos(state.floatAngle * 0.7) * 0.3;
     }
 
     el.style.left = state.x + 'px';
     el.style.top = state.y + 'px';
 
-    // ---- Random Dance ----
+    // --- POSE CHANGES (every 4-8 seconds, fast!) ---
+    if (!state.dancing && now - state.lastPoseChange > 4000 + Math.random() * 4000) {
+      state.lastPoseChange = now;
+
+      if (state.isSleeping) {
+        setPose('sleep');
+        if (Math.random() < 0.05) spawnZzz();
+      } else if (dt > 25000 && Math.random() < 0.3) {
+        state.isSleeping = true;
+        setPose('sleep');
+      } else {
+        // Pick random pose
+        const newPose = randomPose();
+        setPose(newPose);
+        // Occasionally switch between float poses
+        if (newPose === 'float' || newPose === 'float2') {
+          state.lastFloatSwitch = now;
+        }
+        // Random message sometimes
+        if (Math.random() < 0.2) {
+          showMsg(MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
+        }
+      }
+    }
+
+    // --- RANDOM DANCE ---
     if (now - state.lastDance > 12000 && Math.random() < 0.004 && dt > 3000) {
       dance();
       state.lastDance = now;
     }
 
-    // ---- Random Message ----
-    if (now - state.lastMsg > 8000 && Math.random() < 0.005) {
-      showMsg(MESSAGES[state.msgIdx % MESSAGES.length]);
-      state.msgIdx++;
+    // --- RANDOM MSG ---
+    if (now - state.lastMsg > 8000 && Math.random() < 0.003) {
+      showMsg(MESSAGES[Math.floor(Math.random() * MESSAGES.length)]);
       state.lastMsg = now;
     }
 
@@ -444,15 +374,14 @@
   }
 
   // ---------- INIT ----------
-  state.x = 120;
-  state.y = 200;
-  state.roamTargetX = 300;
-  state.roamTargetY = 150;
+  state.x = window.innerWidth * 0.7;
+  state.y = window.innerHeight * 0.6;
   el.style.left = state.x + 'px';
   el.style.top = state.y + 'px';
   setPose('float');
+  setNewWanderTarget();
 
-  setTimeout(() => showMsg("Hi! I'm your guide 👋"), 800);
+  setTimeout(() => showMsg("Hi! I'm your guide 👋"), 1000);
 
   loop();
   console.log('✨ Mascot v4 loaded!');
